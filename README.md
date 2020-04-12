@@ -29,7 +29,7 @@ Training results are kept in `results` directory.
 Put well croped eye images in `./data/test`
 RUN `python test/test_image.py` to test your model.
 
-[!result.jpg](https://raw.githubusercontent.com/ItchyHiker/Irsi_Landmarks/master/images/test_result.png)
+![result.jpg](https://raw.githubusercontent.com/ItchyHiker/Irsi_Landmarks/master/images/test_result.png)
 
    
 
