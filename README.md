@@ -2,10 +2,14 @@
 Repo for dense iris landmarks localization with synthesized eye dataset.
 
 ## Repo Structure
-./config.py: config file 
+./config.py: config file
+
 ./loss.py: loss function
+
 ./checkpoint.py: save the trained model
+
 ./tools: some utitilies
+
 ./test: test results
 
 ## Prepare Dataset
