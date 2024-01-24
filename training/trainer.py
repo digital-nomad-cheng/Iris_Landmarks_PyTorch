@@ -24,7 +24,7 @@ class Trainer(object):
         self.run_count = 0
 
     def compute_metrics(self, pred_landmarks, gt_landmarks):
-       pass
+       raise NotImplementedError()
 
     def train(self, epoch):
         self.scheduler.step()

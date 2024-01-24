@@ -48,7 +48,7 @@ def crop_eye_with_landmarks(img, landmarks):
     large_rect = larger_left_eye_rect
     left_eye = img[large_rect[1]:large_rect[1]+large_rect[3],
                large_rect[0]:large_rect[0]+large_rect[2]]
-    larger_rect = larger_right_eye_rect
+    large_rect = larger_right_eye_rect
     right_eye = img[large_rect[1]:large_rect[1]+large_rect[3],
                large_rect[0]:large_rect[0]+large_rect[2]]
     
