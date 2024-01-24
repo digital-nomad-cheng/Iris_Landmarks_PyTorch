@@ -81,9 +81,14 @@ class Rescale(object):
         ratio = np.random.randint(self.low, self.high)
         image = sample['image']
         landmarks = sample['landmarks']
-        h, w = image.shape[0:2]
-        image = cv2.resize(image, (int(w/ratio), int(h/ratio)))
-        image = cv2.resize(image, (w, h))
+        h, w = image.shape[:2]
+
+        # Downscale
+        small_image = cv2.resize(image, (int(w / ratio), int(h / ratio)))
+
+        # Upscale
+        image = cv2.resize(small_image, (w, h))
+
         return {'image': image, 'landmarks': landmarks}
 
 class RandomGaussianBlur(object):
