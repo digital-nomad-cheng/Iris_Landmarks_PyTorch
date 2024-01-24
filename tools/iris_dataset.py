@@ -202,6 +202,104 @@ class RandomMotionBlur(object):
         landmarks = np.array(landmarks)
         return landmarks
 
+
+
+def unnormalize_landmark(landmarks, image):
+    h, w = image.shape[:2]
+    landmarks[:, 0] = landmarks[:, 0] * w
+    landmarks[:, 1] = landmarks[:, 1] * h
+    return landmarks
+
+def normalize_landmark(landmarks, image):
+    h, w = image.shape[:2]
+    landmarks[:, 0] = landmarks[:, 0] / w
+    landmarks[:, 1] = landmarks[:, 1] / h
+    return landmarks
+
+class RandomCropResize(object):
+    def __init__(self, output_size, resize_ratio):
+        assert isinstance(output_size, (int, tuple))
+        if isinstance(output_size, int):
+            self.output_size = (output_size, output_size)
+        else:
+            assert len(output_size) == 2
+            self.output_size = output_size
+        self.resize_ratio = resize_ratio
+
+    def __call__(self, sample):
+        image, landmarks = sample['image'], sample['landmarks']
+        
+        resize = np.random.random()
+        
+        h, w = image.shape[:2]
+        new_w, new_h = self.output_size
+        
+        if resize < self.resize_ratio:
+            top = np.random.randint(0, h - new_h)
+            left = np.random.randint(0, w - new_w)
+
+            landmarks = unnormalize_landmark(landmarks, image)
+            image = image[top:top + new_h, left:left + new_w]
+            landmarks = landmarks - [left, top]
+            landmarks = normalize_landmark(landmarks, image)
+        else:
+            image = cv2.resize(image, (new_w, new_h))
+            # landmarks = landmarks * [new_w / w, new_h / h]
+            
+        return {'image': image, "landmarks": landmarks}
+
+class RandomRotate(object):
+    def __init__(self, degree):
+        self.degree = degree
+
+    def __call__(self, sample):
+        image = sample['image']
+        landmarks = sample['landmarks']
+        h, w = image.shape[:2]
+        img_h, img_w = image.shape[:2]
+        center = (img_w // 2, img_h // 2)
+        random_degree = np.random.uniform(-self.degree, self.degree)
+        rot_mat = cv2.getRotationMatrix2D(center, random_degree, 1)
+        image_rotated = cv2.warpAffine(image, rot_mat, (img_w, img_h))
+
+        landmark_rotated = np.asarray([(rot_mat[0][0] * x * w + rot_mat[0][1] * y * h + rot_mat[0][2],
+                                        rot_mat[1][0] * x * w + rot_mat[1][1] * y * h + rot_mat[1][2])
+                                       for (x, y) in landmarks])
+
+        for i in range(landmark_rotated.shape[0] // 2):
+            landmark_rotated[2 * i] /= w
+            landmark_rotated[2 * i + 1] /= h
+
+        return {'image': image_rotated, "landmarks": landmark_rotated}
+
+class RandomMotionBlur(object):
+    def __init__(self, radius):
+        self.radius = radius
+        self.seq = iaa.Sequential([
+            iaa.Sometimes(0.2,
+                          iaa.MotionBlur(k=self.radius)
+                          )
+        ])
+
+    def __call__(self, sample):
+        image = sample['image']
+        landmarks = sample['landmarks']
+        landmarks = unnormalize_landmark(landmarks, image)
+        kps = self.landmarks_to_kps(image, landmarks)
+        img_aug, kps_aug = self.seq(image=image, keypoints=kps)
+        landmarks_aug = self.kps_to_landmarks(kps_aug)
+        landmarks_aug = normalize_landmark(landmarks_aug, img_aug)
+        return {'image': img_aug, 'landmarks': landmarks_aug}
+
+    def landmarks_to_kps(self, image, landmarks):
+        kp_list = [Keypoint(x=landmarks[i][0], y=landmarks[i][1]) for i in range(landmarks.shape[0])]
+        kps = KeypointsOnImage(kp_list, shape=image.shape)
+        return kps
+
+    def kps_to_landmarks(self, kps):
+        landmarks = np.array([(kp.x_int, kp.y_int) for kp in kps.keypoints])
+        return landmarks
+
 class ToTensor(object):
     # def __init__(self, image_size):
     #    self.image_size = image_size
