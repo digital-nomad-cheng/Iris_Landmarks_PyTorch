@@ -23,13 +23,6 @@ class CheckPoint(object):
             os.makedirs(self.save_path)
 
     def load_state(self, model, state_dict):
-        """
-        load state_dict to model
-        :params model:
-        :params state_dict:
-        :return: model
-        """
-        # set the model in evaluation mode, otherwise the accuracy will change
         model.eval()
         model_dict = model.state_dict()
 
@@ -49,7 +42,6 @@ class CheckPoint(object):
         """
         if os.path.isfile(model_path):
             print("|===>Load retrain model from:", model_path)
-            # model_state_dict = torch.load(model_path, map_location={'cuda:1':'cuda:0'})
             model_state_dict = torch.load(model_path, map_location='cpu')
             return model_state_dict
         else:
