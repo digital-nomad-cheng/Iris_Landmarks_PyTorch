@@ -60,13 +60,15 @@ class Resize(object):
 class RandomFlip(object):
     def __init__(self, prob):
         self.prob = prob
+
     def __call__(self, sample):
         image = sample['image']
         landmarks = sample['landmarks']
+
         if random.random() < self.prob:
-            image = cv2.flip(image, 1) # 1 for flip around y axis, 0 for x axis, -1 for both
-            # landmarks[:,0] = image.shape[1] - landmarks[:,0] # flip x coordinates
-            landmarks[:, 0] = 1 - landmarks[:, 0]
+            image = cv2.flip(image, 1)  # 1 for flip around y axis, 0 for x axis, -1 for both
+            landmarks[:, 0] = 1 - landmarks[:, 0]  # flip x coordinates
+
         return {'image': image, 'landmarks': landmarks}
 
 class Rescale(object):
